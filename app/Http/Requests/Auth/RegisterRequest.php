@@ -19,7 +19,6 @@ class RegisterRequest extends FormRequest
         return true;
     }
 
-    
 
     /**
      * Get the validation rules that apply to the request.
@@ -31,7 +30,7 @@ class RegisterRequest extends FormRequest
         return [
             'name'     => 'required|string|between:2,100',
             'email'    => 'required|string|email|max:100|unique:users',
-            'role'     => 'nullable',
+            'role'     => 'nullable|in:user,admin',
             'password' => ['required', 'max:16', Password::min(8)->letters()->mixedCase()->numbers()->symbols()->uncompromised()], // Enforce complexity
         ];
     }
@@ -79,10 +78,10 @@ class RegisterRequest extends FormRequest
     {
         // Log validation failure with relevant details
         Log::error('Validation failed for RegisterRequest', [
-            'errors' => $validator->errors()->toArray(),                        // Detailed validation errors for debugging
-            'input' => $this->except(['password', 'password_confirmation']),    // Request data excluding sensitive fields
-            'ip' => $this->ip(),                                                // Client IP for security tracking
-            'user_agent' => $this->userAgent(),                                 // Browser/device info for user analytics
+            'errors' => $validator->errors()->toArray(),
+            'input' => $this->except(['password', 'password_confirmation']),
+            'ip' => $this->ip(),
+            'user_agent' => $this->userAgent(),
         ]);
 
         throw new HttpResponseException(response()->json([

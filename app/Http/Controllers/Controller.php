@@ -32,10 +32,10 @@ class Controller extends BaseController
     public static function paginated(LengthAwarePaginator $paginator, $resourceClass, $message = '', $status = 200)
     {
         $transformedItems = $resourceClass::collection($paginator->items());
-
+    
         return response()->json([
             'status' => 'success',
-            'message' =>  $message,
+            'message' => $message,
             'data' => $transformedItems,
             'pagination' => [
                 'total' => $paginator->total(),

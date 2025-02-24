@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\Auth\AuthController;
+use App\Http\Controllers\Api\Flight\FlightController;
 
 /*
 |--------------------------------------------------------------------------
@@ -28,3 +29,12 @@ Route::group([
     Route::post('refresh', [AuthController::class, 'refresh']);
     Route::get('me', [AuthController::class, 'me']);
 });
+
+
+
+
+Route::apiResource('flights', FlightController::class);
+
+Route::post('/flights/{id}/restore', [FlightController::class, 'restore']);
+Route::get('deleted_flight', [FlightController::class, 'getDeleted']);
+Route::delete('/flights/{id}/force-delete', [FlightController::class, 'forceDelete']);
