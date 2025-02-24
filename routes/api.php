@@ -31,10 +31,12 @@ Route::group([
 });
 
 
+Route::get('flights', [FlightController::class, 'index']);
 
+Route::middleware('admin')->group(function () {
+    Route::apiResource('flights', FlightController::class)->except(['index']);
 
-Route::apiResource('flights', FlightController::class);
-
-Route::post('/flights/{id}/restore', [FlightController::class, 'restore']);
-Route::get('deleted_flight', [FlightController::class, 'getDeleted']);
-Route::delete('/flights/{id}/force-delete', [FlightController::class, 'forceDelete']);
+    Route::post('/flights/{id}/restore', [FlightController::class, 'restore']);
+    Route::get('deleted_flight', [FlightController::class, 'getDeleted']);
+    Route::delete('/flights/{id}/force-delete', [FlightController::class, 'forceDelete']);
+});
