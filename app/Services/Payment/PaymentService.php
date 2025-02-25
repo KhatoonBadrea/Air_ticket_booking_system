@@ -10,6 +10,7 @@ use App\Models\Booking;
 use App\Models\Payment;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Jobs\SendBookingConfirmedEmail;
 
 class PaymentService
 
@@ -57,6 +58,20 @@ class PaymentService
             $booking->payment_status = 'paid';
             $booking->status = 'confirmed';
             $booking->save();
+
+            // Get the user
+            $user = $booking->user;
+            if ($booking->email_sent_at === null) {
+                $user = $booking->user;
+
+                SendBookingConfirmedEmail::dispatch($user, $booking);
+                $updated = $booking->update(['email_sent_at' => now()]);
+               $booking->save();
+
+                Log::info('Update result: ' . ($updated ? 'Success' : 'Failed'));
+            }
+
+
 
             DB::commit();
 

@@ -18,6 +18,7 @@ return new class extends Migration
             $table->integer('number_of_seats');
             $table->enum('status', ['pending', 'confirmed', 'cancelled'])->default('pending');
             $table->enum('payment_status', ['pending', 'paid', 'refunded'])->default('pending');
+            $table->timestamp('email_sent_at')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });

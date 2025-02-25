@@ -35,10 +35,10 @@ class Booking extends Model
     }
 
     /**
-     * Relationship: A booking has many payment.
+     * Relationship: A booking has one payment.
      */
-    public function payments()
+    public function payment()
     {
-        return $this->hasMany(Payment::class);
+        return $this->hasOne(Payment::class);
     }
 }

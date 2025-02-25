@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Payment;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
+use App\Jobs\SendBookingConfirmedEmail;
 use App\Services\Payment\PaymentService;
 use App\Http\Requests\Payment\PaymentRequest;
 use App\Http\Resources\Payment\PaymentResource;

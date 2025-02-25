@@ -19,10 +19,10 @@ class BookingService
     public function getAllBookings()
     {
         try {
-        $perPage = $data['perPage'] ?? 10;
+            $perPage = $data['perPage'] ?? 10;
 
-        $booking = Booking::with(['user', 'flight']);
-        return $booking->paginate($perPage);
+            $booking = Booking::with(['user', 'flight']);
+            return $booking->paginate($perPage);
         } catch (Exception $e) {
             Log::error('Failed to fetch all bookings: ' . $e->getMessage());
             throw new Exception('Failed to fetch all bookings.');
@@ -39,7 +39,7 @@ class BookingService
     {
         return $booking;
     }
-    
+
 
     /**
      * Create a new booking.
@@ -55,31 +55,31 @@ class BookingService
 
         DB::beginTransaction();
 
-        try {
-            $flight = Flight::findOrFail($data['flight_id']);
+        // try {
+        $flight = Flight::findOrFail($data['flight_id']);
 
-            if ($flight->available_seats < $data['number_of_seats']) {
-                throw new Exception('Not enough available seats.');
-            }
-
-            $booking = Booking::create([
-                'user_id' => $user->id,
-                'flight_id' => $data['flight_id'],
-                'number_of_seats' => $data['number_of_seats'],
-                'status' => 'pending',
-                'payment_status' => 'unpaid',
-            ]);
-
-            $flight->decrement('available_seats', $data['number_of_seats']);
-
-            DB::commit();
-
-            return Booking::with(['user', 'flight'])->find($booking->id);
-        } catch (Exception $e) {
-            DB::rollBack();
-            Log::error('Failed to create booking: ' . $e->getMessage());
-            throw new Exception('Failed to create booking: ' );
+        if ($flight->available_seats < $data['number_of_seats']) {
+            throw new Exception('Not enough available seats.');
         }
+
+        $booking = Booking::create([
+            'user_id' => $user->id,
+            'flight_id' => $data['flight_id'],
+            'number_of_seats' => $data['number_of_seats'],
+            'status' => 'pending',
+            'payment_status' => 'pending',
+        ]);
+
+        $flight->decrement('available_seats', $data['number_of_seats']);
+
+        DB::commit();
+
+        return Booking::with(['user', 'flight'])->find($booking->id);
+        // } catch (Exception $e) {
+        //     DB::rollBack();
+        //     Log::error('Failed to create booking: ' . $e->getMessage());
+        //     throw new Exception('Failed to create booking: ' );
+        // }
     }
 
     /**
