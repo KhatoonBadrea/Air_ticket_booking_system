@@ -4,6 +4,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\Flight\FlightController;
+use App\Http\Controllers\Api\Booking\BookingController;
+use App\Http\Controllers\Api\Payment\PaymentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -40,3 +42,12 @@ Route::middleware('admin')->group(function () {
     Route::get('deleted_flight', [FlightController::class, 'getDeleted']);
     Route::delete('/flights/{id}/force-delete', [FlightController::class, 'forceDelete']);
 });
+
+
+Route::apiResource('bookings', BookingController::class);
+
+Route::post('/bookings/{booking}/restore', [BookingController::class, 'restore']);
+Route::delete('/bookings/{booking}/force-delete', [BookingController::class, 'forceDelete']);
+
+
+Route::post('/process-payment', [PaymentController::class, 'processPayment']);

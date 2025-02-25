@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Api\Flight;
 use App\Models\Flight;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Http\Resources\FlightResource;
+use App\Http\Resources\Flight\FlightResource;
 use App\Services\Flight\FlightService;
 use App\Http\Requests\Flight\CreateFlightRequest;
 use App\Http\Requests\Flight\UpdateFlightRequest;
