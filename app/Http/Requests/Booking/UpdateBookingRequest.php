@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Booking;
 
+use App\Rules\BookingEditableRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateBookingRequest extends FormRequest
@@ -21,11 +22,16 @@ class UpdateBookingRequest extends FormRequest
      */
     public function rules(): array
     {
+        $booking = $this->route('booking');
+        
         return [
-            
-            'flight_id' => 'sometimes|exists:flights,id',
-            'number_of_seats' => 'sometimes|integer|min:0'
+            'number_of_seats' => 'nullable|integer|min:1',
+            'flight_id' => 'nullable|exists:flights,id',
+        ] + $this->validateBookingEditable($booking);
+    }
 
-        ];
+    protected function validateBookingEditable($booking)
+    {
+        return ['*' => [new BookingEditableRule($booking)]];
     }
 }

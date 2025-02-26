@@ -51,3 +51,6 @@ Route::delete('/bookings/{booking}/force-delete', [BookingController::class, 'fo
 
 
 Route::post('/process-payment', [PaymentController::class, 'processPayment']);
+
+// رابط تحديث الدفع (إذا كنت تريد نقطة نهاية مخصصة لتحديث الدفع)
+Route::put('/payments/{payment}', [PaymentController::class, 'updatePayment']);

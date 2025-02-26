@@ -25,10 +25,17 @@ class BookingResource extends JsonResource
             'flight' => $this->whenLoaded('flight', function () {
                 return new FlightResource($this->flight);
             }),
-            
+
             'number of seats' => $this->number_of_seats,
             'status' => $this->status,
             'payment_status' => $this->payment_status,
+            'payment' => $this->whenLoaded('payment', function () {
+                return [
+                    'amount' => $this->payment->amount,
+                    'transaction_id' => $this->payment->transaction_id,
+                    'status' => $this->payment->status,
+                ];
+            }),
         ];
     }
 }

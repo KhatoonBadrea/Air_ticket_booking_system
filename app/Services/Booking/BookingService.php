@@ -8,9 +8,17 @@ use App\Models\Booking;
 use Illuminate\Support\Facades\DB;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Log;
+use App\Services\Payment\PaymentService;
 
 class BookingService
 {
+
+    protected $paymentService;
+
+    public function __construct(PaymentService $paymentService)
+    {
+        $this->paymentService = $paymentService;
+    }
     /**
      * Get all bookings.
      *
@@ -57,7 +65,8 @@ class BookingService
 
         try {
             $flight = Flight::findOrFail($data['flight_id']);
-            if ($flight->hasAvailableSeats($data['number_of_seats'])) {
+
+            if (!$flight->hasAvailableSeats($data['number_of_seats'])) {
                 throw new Exception('Not enough available seats.');
             }
 
@@ -111,6 +120,7 @@ class BookingService
             $booking->update([
                 'flight_id' => $data['flight_id'] ?? $booking->flight_id,
                 'number_of_seats' => $data['number_of_seats'] ?? $booking->number_of_seats,
+
             ]);
             $booking = $booking->fresh();
 
@@ -153,6 +163,13 @@ class BookingService
                 $newFlight->save();
             }
 
+            //Update the payment if the flight or the number of seats has changed
+
+            $this->updatePaymentForBooking($booking, $oldFlight, $oldNumberOfSeats);
+
+            $booking = $booking->fresh()->load('payment');
+
+
             DB::commit();
             return [
                 'status' => 'success',
@@ -163,6 +180,28 @@ class BookingService
             DB::rollBack();
             Log::error('Failed to update booking: ' . $e->getMessage());
             return ['status' => 'error', 'message' => 'Booking update failed'];
+        }
+    }
+
+
+    protected function updatePaymentForBooking(Booking $booking, $oldFlight, $oldNumberOfSeats)
+    {
+        $newFlight = $booking->flight;
+
+        $oldPricePerSeat = $oldFlight->price; 
+        $newPricePerSeat = $newFlight->price;
+
+        $oldAmount = $oldNumberOfSeats * $oldPricePerSeat;
+        $newAmount = $booking->number_of_seats * $newPricePerSeat;
+
+        $amountDifference = $newAmount - $oldAmount;
+
+        if ($amountDifference != 0) {
+            $this->paymentService->updatePayment([
+                'booking_id' => $booking->id,
+                'amount' => $newAmount,
+            ]);
+            log::info($newAmount);
         }
     }
 

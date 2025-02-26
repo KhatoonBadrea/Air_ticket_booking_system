@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\Payment;
 
+use App\Models\Booking;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;

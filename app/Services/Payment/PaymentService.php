@@ -66,7 +66,7 @@ class PaymentService
 
                 SendBookingConfirmedEmail::dispatch($user, $booking);
                 $updated = $booking->update(['email_sent_at' => now()]);
-               $booking->save();
+                $booking->save();
 
                 Log::info('Update result: ' . ($updated ? 'Success' : 'Failed'));
             }
@@ -84,6 +84,78 @@ class PaymentService
             DB::rollBack();
             Log::error('PaymentService Error: ' . $e->getMessage());
             return ['status' => 'error', 'message' => 'Payment processing failed'];
+        }
+    }
+
+    /**
+     * Update an existing payment for a booking.
+     *
+     * @param array $data An associative array containing the updated payment details:
+     *                    - 'booking_id': The ID of the booking.
+     *                    - 'amount': The updated amount to be charged.
+     * @return array The result of the update operation.
+     */
+    public function updatePayment(array $data): array
+    {
+        DB::beginTransaction();
+        try {
+
+            $booking = Booking::find($data['booking_id']);
+            if (!$booking) {
+                throw new Exception('Booking not found.');
+            }
+
+            $payment = $booking->payment;
+
+        
+
+            Log::info('Updating payment with data:', [
+                'booking_id' => $booking->id,
+                'amount' => $data['amount'],
+                'transaction_id' => $payment->transaction_id,
+            ]);
+
+            Stripe::setApiKey(env('STRIPE_SECRET_KEY'));
+            $oldCharge = Charge::retrieve($payment->transaction_id);
+            Log::info('Retrieved old charge from Stripe:', ['charge' => $oldCharge]);
+
+
+            if ($oldCharge->amount != $data['amount'] * 100) {
+
+                $newCharge = Charge::create([
+                    'amount' => $data['amount'] * 100, 
+                    'currency' => 'usd',
+                    'source' => 'tok_visa', 
+                    'description' => 'Updated payment for booking ID: ' . $booking->id,
+                ]);
+
+                Log::info('Created new charge in Stripe:', ['charge' => $newCharge]);
+
+
+                $payment->update([
+                    'transaction_id' => $newCharge->id,
+                    'amount' => $data['amount'],
+                ]);
+                
+                // Update booking status
+                $booking->payment_status = 'paid';
+                $booking->status = 'confirmed';
+                $booking->save();
+
+                log::info($booking);
+                Log::info('Updated payment in database:', ['payment' => $payment]);
+            }
+
+            DB::commit();
+            return [
+                'status' => 'success',
+                'message' => 'Payment updated successfully',
+                'data' => Payment::with('booking')->find($payment->id),
+            ];
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('PaymentService Error: ' . $e->getMessage());
+            return ['status' => 'error', 'message' => 'Payment update failed'];
         }
     }
 }
