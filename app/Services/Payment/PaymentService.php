@@ -29,24 +29,30 @@ class PaymentService
     public function processPayment(array $data): array
     {
         DB::beginTransaction();
-
         try {
             Stripe::setApiKey(env('STRIPE_SECRET_KEY'));
 
+
             $booking = Booking::find($data['booking_id']);
             if (!$booking) {
-                throw new Exception('Not enough available seats.');
+                throw new Exception('Booking not found.');
             }
 
-            // Process payment
+            //procces the total price
+            $totalPrice = $booking->number_of_seats * $booking->flight->price;
+
+            // cheack if the amount is enough
+            if ($data['amount'] < $totalPrice) {
+                throw new Exception('The amount provided is insufficient for the booking.');
+            }
+
             $charge = Charge::create([
-                'amount' => $data['amount'] * 100, // Convert to cents
+                'amount' => $data['amount'] * 100, // convert to cent
                 'currency' => 'usd',
                 'source' => $data['stripeToken'],
                 'description' => 'Payment for booking ID: ' . $booking->id,
             ]);
 
-            // Save payment details using the Payment model
             $payment = Payment::create([
                 'booking_id' => $booking->id,
                 'amount' => $data['amount'],
@@ -54,36 +60,27 @@ class PaymentService
                 'status' => 'paid',
             ]);
 
-            // Update booking status
             $booking->payment_status = 'paid';
             $booking->status = 'confirmed';
             $booking->save();
 
-            // Get the user
-            $user = $booking->user;
+            // send an email to confirm the booking
             if ($booking->email_sent_at === null) {
                 $user = $booking->user;
-
                 SendBookingConfirmedEmail::dispatch($user, $booking);
-                $updated = $booking->update(['email_sent_at' => now()]);
-                $booking->save();
-
-                Log::info('Update result: ' . ($updated ? 'Success' : 'Failed'));
+                $booking->update(['email_sent_at' => now()]);
             }
 
-
-
             DB::commit();
-
             return [
                 'status' => 'success',
                 'message' => 'Payment processed successfully',
-                'data' =>  Payment::with('booking')->find($payment->id),
+                'data' => Payment::with('booking')->find($payment->id),
             ];
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('PaymentService Error: ' . $e->getMessage());
-            return ['status' => 'error', 'message' => 'Payment processing failed'];
+            return ['status' => 'error', 'message' => $e->getMessage()];
         }
     }
 
@@ -107,8 +104,6 @@ class PaymentService
 
             $payment = $booking->payment;
 
-        
-
             Log::info('Updating payment with data:', [
                 'booking_id' => $booking->id,
                 'amount' => $data['amount'],
@@ -123,9 +118,9 @@ class PaymentService
             if ($oldCharge->amount != $data['amount'] * 100) {
 
                 $newCharge = Charge::create([
-                    'amount' => $data['amount'] * 100, 
+                    'amount' => $data['amount'] * 100,
                     'currency' => 'usd',
-                    'source' => 'tok_visa', 
+                    'source' => 'tok_visa',
                     'description' => 'Updated payment for booking ID: ' . $booking->id,
                 ]);
 
@@ -136,7 +131,7 @@ class PaymentService
                     'transaction_id' => $newCharge->id,
                     'amount' => $data['amount'],
                 ]);
-                
+
                 // Update booking status
                 $booking->payment_status = 'paid';
                 $booking->status = 'confirmed';
