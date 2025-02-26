@@ -55,31 +55,33 @@ class BookingService
 
         DB::beginTransaction();
 
-        // try {
-        $flight = Flight::findOrFail($data['flight_id']);
+        try {
+            $flight = Flight::findOrFail($data['flight_id']);
+            if ($flight->hasAvailableSeats($data['number_of_seats'])) {
+                throw new Exception('Not enough available seats.');
+            }
 
-        if ($flight->available_seats < $data['number_of_seats']) {
-            throw new Exception('Not enough available seats.');
+            $booking = Booking::create([
+                'user_id' => $user->id,
+                'flight_id' => $data['flight_id'],
+                'number_of_seats' => $data['number_of_seats'],
+                'status' => 'pending',
+                'payment_status' => 'pending',
+            ]);
+
+            $flight->decrement('available_seats', $data['number_of_seats']);
+
+            DB::commit();
+            return [
+                'status' => 'success',
+                'message' => 'Booking Create successfully',
+                'data' => Booking::with(['user', 'flight'])->find($booking->id),
+            ];
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error('Failed to create booking: ' . $e->getMessage());
+            return ['status' => 'error', 'message' => 'Booking create failed'];
         }
-
-        $booking = Booking::create([
-            'user_id' => $user->id,
-            'flight_id' => $data['flight_id'],
-            'number_of_seats' => $data['number_of_seats'],
-            'status' => 'pending',
-            'payment_status' => 'pending',
-        ]);
-
-        $flight->decrement('available_seats', $data['number_of_seats']);
-
-        DB::commit();
-
-        return Booking::with(['user', 'flight'])->find($booking->id);
-        // } catch (Exception $e) {
-        //     DB::rollBack();
-        //     Log::error('Failed to create booking: ' . $e->getMessage());
-        //     throw new Exception('Failed to create booking: ' );
-        // }
     }
 
     /**
@@ -90,17 +92,77 @@ class BookingService
      * @return Booking
      * @throws Exception
      */
+
+
+
+
     public function updateBooking(Booking $booking, array $data)
     {
+        DB::beginTransaction();
         try {
-            $booking->update(array_filter([
+
+            $oldFlight = $booking->flight;
+
+            $oldNumberOfSeats = $booking->number_of_seats;
+
+            Log::info('Old flight ID: ' . $oldFlight->id);
+            Log::info('Old number of seats: ' . $oldNumberOfSeats);
+
+            $booking->update([
                 'flight_id' => $data['flight_id'] ?? $booking->flight_id,
                 'number_of_seats' => $data['number_of_seats'] ?? $booking->number_of_seats,
-            ]));
-            return $booking;
-        } catch (Exception $e) {
+            ]);
+            $booking = $booking->fresh();
+
+            Log::info('After fresh - New flight ID: ' . $booking->flight_id);
+            Log::info('After fresh - New number of seats: ' . $booking->number_of_seats);
+
+            //get the new flight
+            $newFlight = $booking->fresh()->flight;
+
+            if ($oldFlight->id != $newFlight->id) {
+
+                $oldFlight->increment('available_seats', $oldNumberOfSeats);
+
+                if (!$newFlight->hasAvailableSeats($booking->number_of_seats)) {
+                    DB::rollBack();
+                    return [
+                        'status' => 'error',
+                        'message' => 'Not enough available seats in the new flight.',
+                    ];
+                }
+
+                $newFlight->decrement('available_seats', $booking->number_of_seats);
+            } else {
+
+                //  If the flight has not changed, but the number of seats has changed
+
+                $seatDifference = $booking->number_of_seats - $oldNumberOfSeats;
+                Log::info('Seat difference: ' . $seatDifference);
+
+                if (!$oldFlight->hasAvailableSeats(abs($seatDifference))) {
+                    DB::rollBack();
+                    return [
+                        'status' => 'error',
+                        'message' => 'Not enough available seats in the current flight.',
+                    ];
+                }
+
+
+                $newFlight['available_seats'] = $oldFlight['available_seats']  - $seatDifference;
+                $newFlight->save();
+            }
+
+            DB::commit();
+            return [
+                'status' => 'success',
+                'message' => 'Booking updated successfully',
+                'data' => $booking,
+            ];
+        } catch (\Exception $e) {
+            DB::rollBack();
             Log::error('Failed to update booking: ' . $e->getMessage());
-            throw new Exception('Failed to update booking.');
+            return ['status' => 'error', 'message' => 'Booking update failed'];
         }
     }
 

@@ -54,4 +54,11 @@ class Flight extends Model
     {
         return $query->whereDate('departure_time', $departure_time);
     }
+
+
+    /** * Check if there are enough available seats. */
+    public function hasAvailableSeats(int $numberOfSeats): bool
+    {
+        return $this->available_seats >= $numberOfSeats;
+    }
 }

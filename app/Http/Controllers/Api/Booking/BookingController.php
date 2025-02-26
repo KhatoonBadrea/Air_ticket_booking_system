@@ -27,6 +27,8 @@ class BookingController extends Controller
      */
     public function index(Request $request)
     {
+        $this->authorize('index', Booking::class);
+
         $data = [
             'perPage' => $request->input('per_page', 10),
         ];
@@ -42,8 +44,14 @@ class BookingController extends Controller
      */
     public function store(CreateBookingRequest $request)
     {
-        $booking = $this->bookingService->createBooking($request->validated());
-        return $this->success(new BookingResource($booking), 'Booking created successfully', 201);
+        $this->authorize('create', Booking::class);
+
+        $result = $this->bookingService->createBooking($request->validated());
+        if ($result['status'] === 'success') {
+            return $this->success(new BookingResource($result['data']), $result['message']);
+        } else {
+            return $this->error($result['message'], 400); 
+        }
     }
 
     /**
@@ -54,7 +62,10 @@ class BookingController extends Controller
      */
     public function show(Booking $booking)
     {
+        $this->authorize('show', $booking);
+
         return $this->success(new BookingResource($booking), 'Booking data ', 200);
+        
     }
 
     /**
@@ -66,8 +77,14 @@ class BookingController extends Controller
      */
     public function update(UpdateBookingRequest $request, Booking $booking)
     {
-        $updatedBooking = $this->bookingService->updateBooking($booking, $request->validated());
-        return $this->success(new BookingResource($updatedBooking), 'Booking updated successfully', 200);
+        $this->authorize('update', $booking);
+
+        $result = $this->bookingService->updateBooking($booking, $request->validated());
+        if ($result['status'] === 'success') {
+            return $this->success(new BookingResource($result['data']), $result['message']);
+        } else {
+            return $this->error($result['message'], 400); 
+        }    
     }
 
     /**

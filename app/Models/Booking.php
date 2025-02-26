@@ -41,4 +41,6 @@ class Booking extends Model
     {
         return $this->hasOne(Payment::class);
     }
+
+    
 }

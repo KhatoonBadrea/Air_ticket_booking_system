@@ -30,7 +30,7 @@ class RegisterRequest extends FormRequest
         return [
             'name'     => 'required|string|between:2,100',
             'email'    => 'required|string|email|max:100|unique:users',
-            'role'     => 'nullable|in:user,admin',
+            'role'     => 'nullable|in:user,admin,manager',
             'password' => ['required', 'max:16', Password::min(8)->letters()->mixedCase()->numbers()->symbols()->uncompromised()], // Enforce complexity
         ];
     }

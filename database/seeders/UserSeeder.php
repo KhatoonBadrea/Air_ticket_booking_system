@@ -20,6 +20,12 @@ class UserSeeder extends Seeder
             'role'=>'admin',
         ]);
         User::create([
+            'name'=>'manager',
+            'email'=>'manager@gmail.com',
+            'password'=>'123456789&Hh',
+            'role'=>'manager',
+        ]);
+        User::create([
             'name'=>'user1',
             'email'=>'user1@gmail.com',
             'password'=>'123456789&Hh',

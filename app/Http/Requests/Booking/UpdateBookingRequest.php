@@ -22,10 +22,10 @@ class UpdateBookingRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'user_id' => 'sometimes|exists:users,id',
+            
             'flight_id' => 'sometimes|exists:flights,id',
-            'status' => 'sometimes|in:pending,confirmed,cancelled',
-            'payment_status' => 'sometimes|in:paid,unpaid,refunded',
+            'number_of_seats' => 'sometimes|integer|min:0'
+
         ];
     }
 }
