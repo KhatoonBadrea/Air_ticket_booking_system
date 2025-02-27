@@ -43,14 +43,18 @@ Route::middleware('admin')->group(function () {
     Route::delete('/flights/{id}/force-delete', [FlightController::class, 'forceDelete']);
 });
 
+Route::middleware(['auth:api'])->group(function () {
 
-Route::apiResource('bookings', BookingController::class);
+    Route::apiResource('bookings', BookingController::class);
 
-Route::post('/bookings/{booking}/restore', [BookingController::class, 'restore']);
-Route::delete('/bookings/{booking}/force-delete', [BookingController::class, 'forceDelete']);
+    Route::post('/bookings/{booking}/restore', [BookingController::class, 'restore']);
+    Route::delete('/bookings/{booking}/force-delete', [BookingController::class, 'forceDelete']);
+    Route::delete('/bookings/{booking}/cancel', [BookingController::class, 'cancel']);
+});
 
 
+Route::middleware(['auth:api'])->group(function () {
 Route::post('/process-payment', [PaymentController::class, 'processPayment']);
-
-// رابط تحديث الدفع (إذا كنت تريد نقطة نهاية مخصصة لتحديث الدفع)
 Route::put('/payments/{payment}', [PaymentController::class, 'updatePayment']);
+
+});

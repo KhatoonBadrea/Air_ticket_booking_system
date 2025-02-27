@@ -41,6 +41,18 @@ class BookingPolicy
         return $user->id === $booking->user_id;
     }
 
+    /**
+     * Determine if the user can cancel the booking.
+     *
+     * @param \App\Models\User $user
+     * @param \App\Models\Booking $booking
+     * @return bool
+     */
+    public function cancel(User $user, Booking $booking)
+    {
+        return $user->id === $booking->user_id;
+    }
+
 
     /**
      * Determine whether the user can delete the model.

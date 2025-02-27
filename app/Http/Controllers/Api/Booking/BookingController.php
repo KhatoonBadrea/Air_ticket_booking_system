@@ -8,6 +8,7 @@ use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
 use App\Services\Booking\BookingService;
 use App\Http\Resources\Booking\BookingResource;
+use App\Http\Requests\Booking\CancelBookingRequest;
 use App\Http\Requests\Booking\CreateBookingRequest;
 use App\Http\Requests\Booking\UpdateBookingRequest;
 
@@ -32,7 +33,7 @@ class BookingController extends Controller
         $data = [
             'perPage' => $request->input('per_page', 10),
         ];
-        $bookings = $this->bookingService->getAllBookings();
+        $bookings = $this->bookingService->getAllBookings($data);
         return $this->paginated($bookings, BookingResource::class, 'Bookings fetched successfully', 200);
     }
 
@@ -50,7 +51,7 @@ class BookingController extends Controller
         if ($result['status'] === 'success') {
             return $this->success(new BookingResource($result['data']), $result['message']);
         } else {
-            return $this->error($result['message'], 400); 
+            return $this->error($result['message'], 400);
         }
     }
 
@@ -63,9 +64,9 @@ class BookingController extends Controller
     public function show(Booking $booking)
     {
         $this->authorize('show', $booking);
+        $result = $this->bookingService->getBooking($booking);
 
-        return $this->success(new BookingResource($booking), 'Booking data ', 200);
-        
+        return $this->success(new BookingResource($result), 'Booking data ', 200);
     }
 
     /**
@@ -83,46 +84,38 @@ class BookingController extends Controller
         if ($result['status'] === 'success') {
             return $this->success(new BookingResource($result['data']), $result['message']);
         } else {
-            return $this->error($result['message'], 400); 
-        }    
+            return $this->error($result['message'], 400);
+        }
     }
 
-    /**
-     * Remove the specified booking from storage (Soft Delete).
-     *
-     * @param Booking $booking
-     * @return JsonResponse
-     */
-    public function destroy(Booking $booking)
-    {
-        $this->bookingService->deleteBooking($booking);
-        return $this->success(null, 'Booking deleted successfully', 200);
-    }
+
 
 
     /**
-     * Get all deleted bookings (Soft Deleted).
+     * Cancel a booking.
      *
-     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     * @param \App\Models\Booking $booking
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function getDeleted()
+    public function cancel(Booking $booking)
     {
-        $bookings = $this->bookingService->getDeletedBookings();
-        return $this->success(BookingResource::collection($bookings), 'Deleted Booking retrieved successfully.');
+        $this->authorize('cancel', $booking);
+        // $request->validated();
+
+        $result = $this->bookingService->cancelBooking($booking);
+        if ($result['status'] === 'success') {
+            return response()->json(['status' => 'success',
+                'message' => $result['message'],
+            ]);
+        } else {
+            return response()->json([
+                'status' => 'error',
+                'message' => $result['message'],
+            ], 400);
+        }
     }
 
-
-    /**
-     * Restore a deleted booking (Soft Delete).
-     *
-     * @param int $id
-     * @return BookingResource
-     */
-    public function restore($id)
-    {
-        $booking = $this->bookingService->restoreBooking($id);
-        return $this->success(new BookingResource($booking), 'Booking restored successfully.');
-    }
+    
 
     /**
      * Permanently delete a booking (Force Delete).

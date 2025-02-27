@@ -2,9 +2,10 @@
 
 namespace App\Rules;
 
-use Illuminate\Contracts\Validation\Rule;
-use App\Models\Booking;
 use Carbon\Carbon;
+use App\Models\Booking;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Contracts\Validation\Rule;
 
 class BookingEditableRule implements Rule
 {
@@ -26,6 +27,7 @@ class BookingEditableRule implements Rule
     {
         $departureTime = $this->booking->flight->departure_time;
         $timeRemaining = Carbon::parse($departureTime)->diffInHours(Carbon::now());
+        Log::info('Time Remaining in Hours:', ['time_remaining' => $timeRemaining]);
 
         return $timeRemaining > 24;
     }

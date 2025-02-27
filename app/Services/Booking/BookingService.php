@@ -3,12 +3,16 @@
 namespace App\Services\Booking;
 
 use Exception;
+use Stripe\Refund;
+use Stripe\Stripe;
 use App\Models\Flight;
 use App\Models\Booking;
+use App\Rules\BookingEditableRule;
 use Illuminate\Support\Facades\DB;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Log;
 use App\Services\Payment\PaymentService;
+use App\Jobs\SendBookingCancellationEmail;
 
 class BookingService
 {
@@ -24,7 +28,7 @@ class BookingService
      *
      * @return \Illuminate\Database\Eloquent\Collection
      */
-    public function getAllBookings()
+    public function getAllBookings($data)
     {
         try {
             $perPage = $data['perPage'] ?? 10;
@@ -45,6 +49,8 @@ class BookingService
      */
     public function getBooking(Booking $booking)
     {
+        $booking->load(['flight', 'payment']);
+
         return $booking;
     }
 
@@ -188,7 +194,7 @@ class BookingService
     {
         $newFlight = $booking->flight;
 
-        $oldPricePerSeat = $oldFlight->price; 
+        $oldPricePerSeat = $oldFlight->price;
         $newPricePerSeat = $newFlight->price;
 
         $oldAmount = $oldNumberOfSeats * $oldPricePerSeat;
@@ -273,6 +279,66 @@ class BookingService
         } catch (Exception $e) {
             Log::error('Failed to force delete booking: ' . $e->getMessage());
             throw new Exception('Failed to force delete booking.');
+        }
+    }
+
+    /**
+     * Cancel a booking and refund the payment if applicable.
+     *
+     * @param \App\Models\Booking $booking
+     * @return array
+     */
+    public function cancelBooking(Booking $booking): array
+    {
+        DB::beginTransaction();
+        try {
+
+            $rule = new BookingEditableRule($booking);
+
+            if (!$rule->passes(null, null)) {
+                throw new Exception($rule->message());
+            }
+
+            $booking->status = 'cancelled';
+            $booking->payment_status = 'refunded';
+            $booking->save();
+
+            // Refund the Payment
+            $this->refundPayment($booking);
+
+            $booking->flight->increment('available_seats', $booking->number_of_seats);
+
+            SendBookingCancellationEmail::dispatch($booking);
+
+            DB::commit();
+            return [
+                'status' => 'success',
+                'message' => 'Booking cancelled successfully and payment refunded.',
+            ];
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Booking cancellation failed: ' . $e->getMessage());
+            return ['status' => 'error', 'message' => $e->getMessage()];
+        }
+    }
+
+    /**
+     * Refund the payment using Stripe Refund API.
+     *
+     * @param \App\Models\Booking $booking
+     * @return void
+     */
+    protected function refundPayment(Booking $booking)
+    {
+        $payment = $booking->payment;
+        if ($payment && $payment->transaction_id) {
+            Stripe::setApiKey(env('STRIPE_SECRET_KEY'));
+
+            Refund::create([
+                'charge' => $payment->transaction_id,
+            ]);
+
+            $payment->update(['status' => 'refunded']);
         }
     }
 }
