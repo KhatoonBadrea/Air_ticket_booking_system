@@ -18,10 +18,19 @@ The Air Ticket Booking System is an application that allows users to book flight
 #### **2. Registered User:**
 - Create new booking.
 - Modify booking, provided they are at least one day before the flight.
+- Possibility of payment using Strip.
 - Cancel booking and receive a refund if canceled at least one day before the flight.
 - Receive an email notification when:
   - A reservation is confirmed after payment.
   - A reservation is canceled and a refund is issued.
+
+#### Optimizations
+-Admin or Manager Receive a daily report via email that includes:
+  - List of payments.
+  - List of reservations.
+- Cash & Rate Limiting 
+- Protect the system from cyber attacks.
+
 
 ## **Technologies Used**
 - **Service Design Pattern** for structured code.
