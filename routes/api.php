@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\Flight\FlightController;
@@ -33,6 +34,8 @@ Route::group([
 });
 
 
+//======================================Flight Route 
+
 Route::get('flights', [FlightController::class, 'index']);
 
 Route::middleware('admin')->group(function () {
@@ -43,6 +46,9 @@ Route::middleware('admin')->group(function () {
     Route::delete('/flights/{id}/force-delete', [FlightController::class, 'forceDelete']);
 });
 
+
+//========================================Booking Route
+
 Route::middleware(['auth:api'])->group(function () {
 
     Route::apiResource('bookings', BookingController::class);
@@ -50,11 +56,15 @@ Route::middleware(['auth:api'])->group(function () {
     Route::post('/bookings/{booking}/restore', [BookingController::class, 'restore']);
     Route::delete('/bookings/{booking}/force-delete', [BookingController::class, 'forceDelete']);
     Route::delete('/bookings/{booking}/cancel', [BookingController::class, 'cancel']);
+    Route::get('/cancelled', [BookingController::class, 'getCancelledBookings'])->middleware('admin');
+    Route::delete('/cancelled', [BookingController::class, 'deleteCancelledBookings'])->middleware('admin');
+    Route::delete('/pending', [BookingController::class, 'deletePendingBookingsBefore24Hours'])->middleware('admin');
 });
 
 
-Route::middleware(['auth:api'])->group(function () {
-Route::post('/process-payment', [PaymentController::class, 'processPayment']);
-Route::put('/payments/{payment}', [PaymentController::class, 'updatePayment']);
+//=============================================Payment Route
 
+Route::middleware(['auth:api'])->group(function () {
+    Route::post('/process-payment', [PaymentController::class, 'processPayment']);
+    Route::put('/payments/{payment}', [PaymentController::class, 'updatePayment']);
 });

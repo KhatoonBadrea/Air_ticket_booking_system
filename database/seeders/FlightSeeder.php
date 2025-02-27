@@ -16,8 +16,8 @@ class FlightSeeder extends Seeder
         Flight::create([
             'origin' => 'New York',
             'destination' => 'Los Angeles',
-            'departure_time' => '2023-10-15 08:00:00',
-            'arrival_time' => '2023-10-15 11:00:00',
+            'departure_time' => '2025-02-28 08:00:00',
+            'arrival_time' => '2025-02-28 11:00:00',
             'price' => 250,
             'available_seats' => 150,
         ]);
@@ -25,8 +25,8 @@ class FlightSeeder extends Seeder
         Flight::create([
             'origin' => 'London',
             'destination' => 'Paris',
-            'departure_time' => '2023-10-20 10:30:00',
-            'arrival_time' => '2023-10-20 12:00:00',
+            'departure_time' => '2025-10-20 10:30:00',
+            'arrival_time' => '2025-10-20 12:00:00',
             'price' => 300,
             'available_seats' => 100,
         ]);
@@ -34,8 +34,8 @@ class FlightSeeder extends Seeder
         Flight::create([
             'origin' => 'Dubai',
             'destination' => 'Riyadh',
-            'departure_time' => '2023-10-25 14:00:00',
-            'arrival_time' => '2023-10-25 15:30:00',
+            'departure_time' => '2025-10-24 14:00:00',
+            'arrival_time' => '2025-10-25 15:30:00',
             'price' => 200,
             'available_seats' => 200,
         ]);
@@ -43,8 +43,8 @@ class FlightSeeder extends Seeder
         Flight::create([
             'origin' => 'Tokyo',
             'destination' => 'Seoul',
-            'departure_time' => '2023-10-30 09:00:00',
-            'arrival_time' => '2023-10-30 11:30:00',
+            'departure_time' => '2025-10-30 09:00:00',
+            'arrival_time' => '2025-10-30 11:30:00',
             'price' => 400,
             'available_seats' => 120,
         ]);

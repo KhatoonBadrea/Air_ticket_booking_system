@@ -73,9 +73,9 @@ class CreateFlightRequest extends FormRequest
             'price'   => 'required|numeric|min:1',
             'origin'  => 'required|string|max:255',
             'destination'     => 'required|string|max:255',
+            'departure_time'  => 'required|date|after:+1 hour',
             'arrival_time'    => 'required|date|after:departure_time',
-            'departure_time'  => 'required|date',
-            'available_seats' => 'required|integer|min:0',
+            'available_seats' => 'required|integer|min:1',
         ];
     }
 
@@ -104,6 +104,7 @@ class CreateFlightRequest extends FormRequest
             'price.numeric'           => ' The price field must be a number.',
             'arrival_time.after'      => 'The arrival time field must be after the departure time',
             'available_seats.min'     => 'The field of available seats must be a positive number.',
+            'departure_time.after'    => 'the :attribute must be after 1 houre from now',
             'available_seats.integer' => 'The field of available seats must be an integer.',
         ];
     }

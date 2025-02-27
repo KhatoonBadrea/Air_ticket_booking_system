@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\Booking;
 
+use Exception;
 use App\Models\Booking;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -37,6 +38,9 @@ class BookingController extends Controller
         return $this->paginated($bookings, BookingResource::class, 'Bookings fetched successfully', 200);
     }
 
+
+    //===================================================store
+
     /**
      * Store a newly created booking in storage.
      *
@@ -55,6 +59,10 @@ class BookingController extends Controller
         }
     }
 
+
+
+    //==========================================show
+
     /**
      * Display the specified booking.
      *
@@ -68,6 +76,10 @@ class BookingController extends Controller
 
         return $this->success(new BookingResource($result), 'Booking data ', 200);
     }
+
+
+
+    //==========================================update
 
     /**
      * Update the specified booking in storage.
@@ -89,7 +101,7 @@ class BookingController extends Controller
     }
 
 
-
+    //===========================================cancel
 
     /**
      * Cancel a booking.
@@ -100,11 +112,11 @@ class BookingController extends Controller
     public function cancel(Booking $booking)
     {
         $this->authorize('cancel', $booking);
-        // $request->validated();
 
         $result = $this->bookingService->cancelBooking($booking);
         if ($result['status'] === 'success') {
-            return response()->json(['status' => 'success',
+            return response()->json([
+                'status' => 'success',
                 'message' => $result['message'],
             ]);
         } else {
@@ -115,17 +127,68 @@ class BookingController extends Controller
         }
     }
 
-    
+
+    //=======================================getCancelledBookings
 
     /**
-     * Permanently delete a booking (Force Delete).
+     * Get all cancelled bookings.
      *
-     * @param int $id
-     * @return JsonResponse
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function forceDelete($id)
+    public function getCancelledBookings()
     {
-        $this->bookingService->forceDeleteBooking($id);
-        return $this->success(null, 'Booking permanently deleted');
+        $result = $this->bookingService->getCancelled();
+
+        if ($result['status'] === 'success') {
+            return $this->success((BookingResource::collection($result['data'])), $result['message']);
+        } else {
+            return $this->error($result['message'], 400);
+        }
     }
+
+    //================================================deleteCancelledBookings
+    /**
+     * Delete all cancelled bookings.
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function deleteCancelledBookings()
+    {
+
+
+        $result = $this->bookingService->deleteCancelledBookings();
+
+        if ($result['status'] === 'success') {
+            return $this->success(null, $result['message']);
+        } else {
+            return $this->error($result['message'], 400);
+        }
+    }
+
+    //======================================================deletePendingBookingsBefore24Hours
+
+    /**
+     * Delete pending bookings before 24 hours of departure.
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function deletePendingBookingsBefore24Hours()
+    {
+        try {
+
+            $result = $this->bookingService->deletePendingBookingsBefore24Hours();
+
+            return response()->json([
+                'status' => $result['status'],
+                'message' => $result['message'],
+            ]);
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
 }
+

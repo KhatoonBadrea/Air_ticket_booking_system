@@ -22,11 +22,8 @@ class CreateBookingRequest extends FormRequest
     public function rules(): array
     {
         return [
-            // 'user_id' => 'required|exists:users,id',
             'flight_id' => 'required|exists:flights,id',
             'number_of_seats'=>'required|integer|min:0',
-            // 'status' => 'nullable|in:pending,confirmed,cancelled',
-            // 'payment_status' => 'nullable|in:paid,unpaid,refunded',
         ];
     }
 }

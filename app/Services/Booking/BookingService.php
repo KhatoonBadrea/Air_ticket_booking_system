@@ -23,6 +23,12 @@ class BookingService
     {
         $this->paymentService = $paymentService;
     }
+
+
+
+    //================================getAllBookings
+
+
     /**
      * Get all bookings.
      *
@@ -41,6 +47,8 @@ class BookingService
         }
     }
 
+    //==============================================getBooking
+
     /**
      * Get a specific booking.
      *
@@ -54,6 +62,7 @@ class BookingService
         return $booking;
     }
 
+    //===========================================createBooking
 
     /**
      * Create a new booking.
@@ -99,6 +108,8 @@ class BookingService
         }
     }
 
+    //=============================================updateBooking
+
     /**
      * Update an existing booking.
      *
@@ -107,9 +118,6 @@ class BookingService
      * @return Booking
      * @throws Exception
      */
-
-
-
 
     public function updateBooking(Booking $booking, array $data)
     {
@@ -189,6 +197,16 @@ class BookingService
         }
     }
 
+    //=================================updatePaymentForBooking
+
+    /**
+     * update payment directly when update the booking
+     * 
+     * @param Booking $booking
+     * @param $oldFlight
+     * @param $oldNumberOfSeats
+     * 
+     */
 
     protected function updatePaymentForBooking(Booking $booking, $oldFlight, $oldNumberOfSeats)
     {
@@ -211,76 +229,68 @@ class BookingService
         }
     }
 
-    /**
-     * Delete a booking (Soft Delete).
-     *
-     * @param Booking $booking
-     * @return Booking
-     * @throws Exception
-     */
-    public function deleteBooking(Booking $booking)
-    {
-        try {
-            $booking->delete();
-            return $booking;
-        } catch (Exception $e) {
-            Log::error('Failed to delete booking: ' . $e->getMessage());
-            throw new Exception('Failed to delete booking.');
-        }
-    }
+
+    //=====================================getCancelled
 
     /**
-     * Restore a deleted booking (Soft Delete).
-     *
-     * @param int $id
-     * @return Booking
-     * @throws Exception
-     */
-    public function restoreBooking($id)
-    {
-        try {
-            $booking = Booking::withTrashed()->findOrFail($id);
-            $booking->restore();
-            return $booking;
-        } catch (Exception $e) {
-            Log::error('Failed to restore booking: ' . $e->getMessage());
-            throw new Exception('Failed to restore booking.');
-        }
-    }
-
-    /**
-     * Get all deleted bookings (Soft Deleted).
+     * Get all cancelled bookings with related data.
      *
      * @return \Illuminate\Database\Eloquent\Collection
      * @throws Exception
      */
-    public function getDeletedBookings()
+
+    public function getCancelled()
     {
         try {
-            return Booking::onlyTrashed()->with(['user', 'flight'])->get();
-        } catch (Exception $e) {
-            Log::error('Failed to fetch deleted bookings: ' . $e->getMessage());
-            throw new Exception('Failed to fetch deleted bookings.');
+            return [
+                'status' => 'success',
+                'message' => 'fetch cancelled bookings successfully',
+                'data' => Booking::cancelled()->with(['flight', 'payment', 'user'])->get(),
+            ];
+        } catch (\Exception $e) {
+            Log::error('Failed to fetch cancelled bookings: ' . $e->getMessage());
+            return ['status' => 'error', 'message' => 'Failed to fetch cancelled bookings'];
         }
     }
 
+    //================================================deleteCancelledBookings
+
     /**
-     * Permanently delete a booking (Force Delete).
+     * Delete all cancelled bookings.
      *
-     * @param int $id
-     * @return void
+     * @return array
      * @throws Exception
      */
-    public function forceDeleteBooking($id)
+    public function deleteCancelledBookings()
     {
         try {
-            $booking = Booking::withTrashed()->findOrFail($id);
-            $booking->forceDelete();
-        } catch (Exception $e) {
-            Log::error('Failed to force delete booking: ' . $e->getMessage());
-            throw new Exception('Failed to force delete booking.');
+            $cancelledBookings = Booking::cancelled()->get();
+
+            if ($cancelledBookings->isEmpty()) {
+                return [
+                    'status' => 'success',
+                    'message' => 'No cancelled bookings found to delete.',
+                ];
+            }
+
+            $deletedCount = Booking::cancelled()->delete();
+
+            return [
+                'status' => 'success',
+                'message' => "cancelled bookings have been deleted successfully.",
+                // 'data'=>$deletedCount
+            ];
+        } catch (\Exception $e) {
+            Log::error('Failed to delete cancelled bookings: ' . $e->getMessage());
+            return [
+                'status' => 'error',
+                'message' => 'Failed to delete cancelled bookings.',
+            ];
         }
     }
+
+
+    //==================================================cancelBooking
 
     /**
      * Cancel a booking and refund the payment if applicable.
@@ -322,6 +332,8 @@ class BookingService
         }
     }
 
+    //====================================refundPayment
+
     /**
      * Refund the payment using Stripe Refund API.
      *
@@ -341,4 +353,48 @@ class BookingService
             $payment->update(['status' => 'refunded']);
         }
     }
+
+
+
+
+    //==============================================deletePendingBookingsBefore24Hours
+
+    /**
+     * Delete pending bookings before 24 hours of departure and update flight seats.
+     *
+     * @return array
+     * @throws Exception
+     */
+    public function deletePendingBookingsBefore24Hours()
+    {
+        DB::beginTransaction();
+        try {
+            $pendingBookings = Booking::pendingBefore24Hours()->get();
+
+            if ($pendingBookings->isEmpty()) {
+                return [
+                    'status' => 'success',
+                    'message' => 'No pending bookings found to delete.',
+                ];
+            }
+
+            foreach ($pendingBookings as $booking) {
+                $booking->flight->increment('available_seats', $booking->number_of_seats);
+
+                $booking->delete();
+            }
+
+            DB::commit();
+            return [
+                'status' => 'success',
+                'message' => "{$pendingBookings->count()} pending bookings have been deleted successfully, and flight seats have been updated.",
+            ];
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Failed to delete pending bookings: ' . $e->getMessage());
+            throw new Exception('Failed to delete pending bookings.');
+        }
+    }
+
+ 
 }

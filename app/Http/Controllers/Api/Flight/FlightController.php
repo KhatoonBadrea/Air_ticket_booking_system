@@ -24,6 +24,8 @@ class FlightController extends Controller
         $this->flightService = $flightService;
     }
 
+    //================================================Display a listing of all flights
+
     /**
      * Display a listing of all flights.
      * @param \Illuminate\Http\Request $request The incoming HTTP request containing query parameters.
@@ -44,6 +46,11 @@ class FlightController extends Controller
         return $this->paginated($flights, FlightResource::class, 'Flights fetched successfully', 200);
     }
 
+
+
+    //=================================================store
+
+
     /**
      * Store a newly created flight in storage.
      *
@@ -56,6 +63,9 @@ class FlightController extends Controller
         return $this->success(new FlightResource($flight), 'Flight created successfully', 201);
     }
 
+
+    //==============================================show
+
     /**
      * Display the specified flight.
      *
@@ -66,6 +76,10 @@ class FlightController extends Controller
     {
         return $this->success(new FlightResource($flight), 'Flight data ', 200);
     }
+
+
+    //=========================================update
+
 
     /**
      * Update the specified flight in storage.
@@ -80,6 +94,8 @@ class FlightController extends Controller
         return $this->success(new FlightResource($updatedFlight), 'Flight updated successfully', 200);
     }
 
+    //==========================================destroy
+
     /**
      * Remove the specified flight from storage (Soft Delete).
      *
@@ -92,6 +108,10 @@ class FlightController extends Controller
         return $this->success(null, 'Flight deleted successfully', 200);
     }
 
+
+
+    //==========================================getDelete
+
     /**
      * Get all deleted flights (Soft Deleted).
      *
@@ -102,6 +122,8 @@ class FlightController extends Controller
         $flights = $this->flightService->getDeleteFlight();
         return $this->success(FlightResource::collection($flights), 'Deleted flight retrieved successfully.');
     }
+
+    //================================================restore
 
     /**
      * Restore a deleted flight (Soft Delete).
@@ -114,6 +136,8 @@ class FlightController extends Controller
         $flight = $this->flightService->restoreFlight($id);
         return $this->success(new FlightResource($flight), 'Flight restored successfully.');
     }
+
+    //=================================================forceDelete
 
     /**
      * Permanently delete a flight (Force Delete).

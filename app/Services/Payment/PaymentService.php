@@ -80,9 +80,11 @@ class PaymentService
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('PaymentService Error: ' . $e->getMessage());
-            return ['status' => 'error', 'message' => $e->getMessage()];
+            return ['status' => 'error', 'message' => 'payment create failed'];
         }
     }
+
+    //=========================================updatePayment
 
     /**
      * Update an existing payment for a booking.

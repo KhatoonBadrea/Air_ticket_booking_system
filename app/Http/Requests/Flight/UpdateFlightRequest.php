@@ -67,7 +67,7 @@ class UpdateFlightRequest extends FormRequest
             'origin'  => 'nullable|string|max:255',
             'destination'     => 'nullable|string|max:255',
             'arrival_time'    => 'nullable|date|after:departure_time',
-            'departure_time'  => 'nullable|date',
+            'departure_time'  => 'nullable|date|after:+1 hour',
             'available_seats' => 'nullable|integer|min:0',
         ];
     }
@@ -95,6 +95,7 @@ class UpdateFlightRequest extends FormRequest
             'price.min'      => 'The price field must be at least 1.',
             'price.numeric'           => ' The price field must be a number.',
             'arrival_time.after'      => 'The arrival time field must be after the departure time',
+            'departure_time.after'    => 'the :attribute must be after 1 houre from now',
             'available_seats.min'     => 'The field of available seats must be a positive number.',
             'available_seats.integer' => 'The field of available seats must be an integer.',
         ];
@@ -109,8 +110,7 @@ class UpdateFlightRequest extends FormRequest
      */
     protected function failedValidation(Validator $validator): void
     {
-        // Log validation failure with relevant details
-        Log::error('Validation failed for RegisterRequest', [
+        Log::error('Validation failed for UpdateFlightRequest', [
             'errors' => $validator->errors()->toArray(),
         ]);
 
@@ -122,26 +122,34 @@ class UpdateFlightRequest extends FormRequest
     }
 
     protected function passedValidation()
-{
-    // إذا تم تقديم departure_time و arrival_time
-    if ($this->departure_time && $this->arrival_time) {
-        // تحقق من أن arrival_time بعد departure_time
-        if (strtotime($this->arrival_time) <= strtotime($this->departure_time)) {
+    {
+        $departureTime = $this->input('departure_time');
+        $arrivalTime = $this->input('arrival_time');
+
+        Log::info('Departure Time:', ['departure_time' => $departureTime]);
+        Log::info('Arrival Time:', ['arrival_time' => $arrivalTime]);
+
+        if ($departureTime && $arrivalTime) {
+            if (strtotime($arrivalTime) <= strtotime($departureTime)) {
+                throw new HttpResponseException(response()->json([
+                    'status'  => 'error',
+                    'message' => 'Validation failed.',
+                    'errors'  => [
+                        'arrival_time' => ['The arrival time must be after the departure time.'],
+                    ],
+                ], 422));
+            }
+        }
+
+        $flight = $this->route('flight');
+        if (!$flight) {
             throw new HttpResponseException(response()->json([
                 'status'  => 'error',
-                'message' => 'Validation failed.',
-                'errors'  => [
-                    'arrival_time' => ['The arrival time must be after the departure time.'],
-                ],
-            ], 422));
+                'message' => 'Flight not found.',
+            ], 404));
         }
-    }
 
-    // إذا تم تقديم departure_time فقط
-    if ($this->departure_time && !$this->arrival_time) {
-        // تحقق من أن departure_time الجديد ليس بعد arrival_time الحالي
-        $flight = Flight::find($this->route('flight')); // الحصول على الرحلة الحالية
-        if ($flight && strtotime($this->departure_time) >= strtotime($flight->arrival_time)) {
+        if ($departureTime && strtotime($departureTime) >= strtotime($flight->arrival_time)) {
             throw new HttpResponseException(response()->json([
                 'status'  => 'error',
                 'message' => 'Validation failed.',
@@ -151,5 +159,4 @@ class UpdateFlightRequest extends FormRequest
             ], 422));
         }
     }
-}
 }

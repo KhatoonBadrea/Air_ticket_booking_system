@@ -8,6 +8,8 @@ use Exception;
 
 class FlightService
 {
+
+
     /**
      * Get all flights.
      * @param array $data
@@ -21,21 +23,24 @@ class FlightService
             $origin = $data['origin'] ?? null;
             $available_seats = isset($data['available_seats']) ? intval($data['available_seats']) : null;
             $departure_time = $data['departure_time'] ?? null;
-    
+
             $query = Flight::query()
                 ->when($destination, fn($query) => $query->FilterByDestination($destination))
                 ->when($origin, fn($query) => $query->FilterByOrigin($origin))
                 ->when($available_seats, fn($query) => $query->FilterByAvailableSeats($available_seats))
                 ->when($departure_time, fn($query) => $query->FilterByDay($departure_time));
-    
+
             Log::info('Generated SQL Query: ' . $query->toSql());
-    
+
             return $query->paginate($perPage);
         } catch (Exception $e) {
             Log::error('Failed to fetch all flights: ' . $e->getMessage());
             throw new Exception('Failed to fetch all flights.');
         }
     }
+
+
+    //=============================================create a new flight
 
     /**
      * Create a new flight.
@@ -53,6 +58,9 @@ class FlightService
             throw new Exception('Failed to create flight.');
         }
     }
+
+
+    //=============================================update flight
 
     /**
      * Update an existing flight.
@@ -73,6 +81,10 @@ class FlightService
         }
     }
 
+
+
+    //========================================delete flight
+
     /**
      * Delete a flight (Soft Delete).
      *
@@ -90,6 +102,10 @@ class FlightService
             throw new Exception('Failed to delete flight.');
         }
     }
+
+
+
+    //=============================================restore flight
 
     /**
      * Restore a deleted flight (Soft Delete).
@@ -110,6 +126,9 @@ class FlightService
         }
     }
 
+
+    //=============================================get deleted flight
+
     /**
      * Get all deleted flights (Soft Deleted).
      *
@@ -125,6 +144,8 @@ class FlightService
             throw new Exception('Failed to fetch deleted flights.');
         }
     }
+
+    //=====================================force delete flight
 
     /**
      * Permanently delete a flight (Force Delete).
