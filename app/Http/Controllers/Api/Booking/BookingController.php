@@ -53,7 +53,7 @@ class BookingController extends Controller
 
         $result = $this->bookingService->createBooking($request->validated());
         if ($result['status'] === 'success') {
-            return $this->success(new BookingResource($result['data']), $result['message']);
+            return $this->success(new BookingResource($result['data']), $result['message'], $status = 201);
         } else {
             return $this->error($result['message'], 400);
         }
@@ -189,6 +189,4 @@ class BookingController extends Controller
             ], 500);
         }
     }
-
 }
-

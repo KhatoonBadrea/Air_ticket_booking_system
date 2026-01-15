@@ -395,6 +395,4 @@ class BookingService
             throw new Exception('Failed to delete pending bookings.');
         }
     }
-
- 
 }
