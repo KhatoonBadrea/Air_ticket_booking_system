@@ -179,9 +179,9 @@ class BookingService
 
             //Update the payment if the flight or the number of seats has changed
 
-            $this->updatePaymentForBooking($booking, $oldFlight, $oldNumberOfSeats);
+            // $this->updatePaymentForBooking($booking, $oldFlight, $oldNumberOfSeats);
 
-            $booking = $booking->fresh()->load('payment');
+            // $booking = $booking->fresh()->load('payment');
 
 
             DB::commit();

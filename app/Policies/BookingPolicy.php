@@ -28,7 +28,6 @@ class BookingPolicy
      */
     public function create(User $user): bool
     {
-        // السماح لأي شخص بإنشاء حجز
         return true;
     }
 
@@ -37,7 +36,6 @@ class BookingPolicy
      */
     public function update(User $user, Booking $booking): bool
     {
-        // السماح فقط لصاحب العلاقة بتحديث الحجز
         return $user->id === $booking->user_id;
     }
 
