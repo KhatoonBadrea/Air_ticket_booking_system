@@ -8,71 +8,56 @@ use App\Models\Booking;
 class BookingPolicy
 {
     /**
-     * Determine whether the user can view any bookings.
+     * View all bookings (Admin / Manager)
      */
-    public function index(User $user): bool
+    public function viewAny(User $user): bool
     {
-        return in_array($user->role, ['admin', 'manager']);
+        return $user->can('manage booking');
     }
 
     /**
-     * Determine whether the user can view the booking.
+     * View single booking
      */
-    public function show(User $user, Booking $booking): bool
+    public function view(User $user, Booking $booking): bool
     {
-        return in_array($user->role, ['admin', 'manager']) || $user->id === $booking->user_id;
+        return
+            $user->can('manage booking') ||
+            $user->id === $booking->user_id;
     }
 
     /**
-     * Determine whether the user can create bookings.
+     * Create booking
      */
     public function create(User $user): bool
     {
-        return true;
+        return $user->can('create booking');
     }
 
     /**
-     * Determine whether the user can update the booking.
+     * Update booking
      */
     public function update(User $user, Booking $booking): bool
     {
-        return $user->id === $booking->user_id;
+        return
+            $user->can('update booking') &&
+            $user->id === $booking->user_id;
     }
 
     /**
-     * Determine if the user can cancel the booking.
-     *
-     * @param \App\Models\User $user
-     * @param \App\Models\Booking $booking
-     * @return bool
+     * Cancel booking
      */
-    public function cancel(User $user, Booking $booking)
+    public function cancel(User $user, Booking $booking): bool
     {
-        return $user->id === $booking->user_id;
-    }
-
-
-    /**
-     * Determine whether the user can delete the model.
-     */
-    public function delete(User $user): bool
-    {
-        return in_array($user->role, ['admin', 'manager']);
+        return
+            $user->can('cancel booking') &&
+            $user->id === $booking->user_id;
     }
 
     /**
-     * Determine whether the user can restore the model.
+     * Delete booking (Admin only)
      */
-    public function restore(User $user): bool
+    public function delete(User $user, Booking $booking): bool
     {
-        return in_array($user->role, ['admin']);
-    }
-
-    /**
-     * Determine whether the user can permanently delete the model.
-     */
-    public function forceDelete(User $user): bool
-    {
-        return in_array($user->role, ['admin']);
+        return $user->can('manage booking');
     }
 }

@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers\Api\Auth;
 
 use App\Services\Auth\AuthService;
@@ -26,6 +27,8 @@ class AuthController extends Controller
         if ($response['error']) {
             return $this->error(null, 'Password or email error', 401);
         }
+
+        // dd(auth()->user('api')->getPermissionNames());
 
         return $this->success($response['data'], 'Login successful', $response['status']);
     }

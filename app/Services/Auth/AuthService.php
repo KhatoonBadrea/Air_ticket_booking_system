@@ -31,7 +31,6 @@ class AuthService
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
-            'role' => $data['role'],
         ]);
 
         $token = JWTAuth::fromUser($user);

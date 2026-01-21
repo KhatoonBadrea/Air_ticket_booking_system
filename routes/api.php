@@ -38,7 +38,7 @@ Route::group([
 
 Route::get('flights', [FlightController::class, 'index']);
 
-Route::middleware('admin')->group(function () {
+Route::middleware(['auth:api', 'permission:manage flights'])->group(function () {
     Route::apiResource('flights', FlightController::class)->except(['index']);
 
     Route::post('/flights/{id}/restore', [FlightController::class, 'restore']);
@@ -53,18 +53,29 @@ Route::middleware(['auth:api'])->group(function () {
 
     Route::apiResource('bookings', BookingController::class);
 
-    Route::post('/bookings/{booking}/restore', [BookingController::class, 'restore']);
-    Route::delete('/bookings/{booking}/force-delete', [BookingController::class, 'forceDelete']);
+    Route::post('/bookings/{booking}/restore', [BookingController::class, 'restore'])
+        ->middleware('permission:manage booking');
+
+    Route::delete('/bookings/{booking}/force-delete', [BookingController::class, 'forceDelete'])
+        ->middleware('permission:manage booking');
+
     Route::delete('/bookings/{booking}/cancel', [BookingController::class, 'cancel']);
-    Route::get('/cancelled', [BookingController::class, 'getCancelledBookings'])->middleware('admin');
-    Route::delete('/cancelled', [BookingController::class, 'deleteCancelledBookings'])->middleware('admin');
-    Route::delete('/pending', [BookingController::class, 'deletePendingBookingsBefore24Hours'])->middleware('admin');
+
+    Route::get('/cancelled', [BookingController::class, 'getCancelledBookings'])
+        ->middleware('permission:manage booking');
+
+    Route::delete('/cancelled', [BookingController::class, 'deleteCancelledBookings'])
+        ->middleware('permission:manage booking');
+
+    Route::delete('/pending', [BookingController::class, 'deletePendingBookingsBefore24Hours'])
+        ->middleware('permission:manage booking');
 });
 
 
 //=============================================Payment Route
 
 Route::middleware(['auth:api'])->group(function () {
-    Route::post('/process-payment', [PaymentController::class, 'processPayment']);
+    Route::post('/process-payment', [PaymentController::class, 'processPayment'])
+        ->middleware('permission:create payment');
     Route::put('/payments/{payment}', [PaymentController::class, 'updatePayment']);
 });

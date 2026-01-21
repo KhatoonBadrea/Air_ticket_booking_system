@@ -29,7 +29,7 @@ class BookingController extends Controller
      */
     public function index(Request $request)
     {
-        $this->authorize('index', Booking::class);
+        $this->authorize('viewAny', Booking::class);
 
         $data = [
             'perPage' => $request->input('per_page', 10),
@@ -71,9 +71,9 @@ class BookingController extends Controller
      */
     public function show(Booking $booking)
     {
-        $this->authorize('show', $booking);
-        $result = $this->bookingService->getBooking($booking);
+        $this->authorize('view', $booking);
 
+        $result = $this->bookingService->getBooking($booking);
         return $this->success(new BookingResource($result), 'Booking data ', 200);
     }
 
