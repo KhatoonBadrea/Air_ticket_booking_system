@@ -12,11 +12,11 @@ class UserSeeder extends Seeder
     /**
      * Run the database seeds.
      */
-   public function run(): void
+    public function run(): void
     {
         // ===== Admin =====
         $admin = User::firstOrCreate(
-            ['email' => 'admin@airbooking.com'],
+            ['email' => 'khatoonbadrea66@gmail.com'],
             [
                 'name' => 'Admin User',
                 'password' => Hash::make('password'),
