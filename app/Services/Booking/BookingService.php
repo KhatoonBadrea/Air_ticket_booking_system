@@ -79,8 +79,9 @@ class BookingService
         DB::beginTransaction();
 
         try {
-            $flight = Flight::findOrFail($data['flight_id']);
-
+            $flight = Flight::where('id', $data['flight_id'])
+                ->lockForUpdate()
+                ->firstOrFail();
             if (!$flight->hasAvailableSeats($data['number_of_seats'])) {
                 throw new Exception('Not enough available seats.');
             }
@@ -124,8 +125,14 @@ class BookingService
         DB::beginTransaction();
         try {
 
-            $oldFlight = $booking->flight;
+            $booking = Booking::where('id', $booking->id)
+                ->lockForUpdate()
+                ->first();
 
+
+            $oldFlight = Flight::where('id', $booking->flight_id)
+                ->lockForUpdate()
+                ->first();
             $oldNumberOfSeats = $booking->number_of_seats;
 
             Log::info('Old flight ID: ' . $oldFlight->id);
@@ -142,8 +149,9 @@ class BookingService
             Log::info('After fresh - New number of seats: ' . $booking->number_of_seats);
 
             //get the new flight
-            $newFlight = $booking->fresh()->flight;
-
+            $newFlight = Flight::where('id', $booking->flight_id)
+                ->lockForUpdate()
+                ->first();
             if ($oldFlight->id != $newFlight->id) {
 
                 $oldFlight->increment('available_seats', $oldNumberOfSeats);

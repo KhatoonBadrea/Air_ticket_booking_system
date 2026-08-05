@@ -32,6 +32,7 @@ class AuthService
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
         ]);
+        $user->assignRole('user');
 
         $token = JWTAuth::fromUser($user);
 
@@ -59,7 +60,7 @@ class AuthService
             'access_token' => $token,
             'token_type' => 'bearer',
             'expires_in' => auth()->factory()->getTTL() * 60,
-            'user' => auth()->user(),
+            // 'user' => auth()->user(),
         ];
     }
 

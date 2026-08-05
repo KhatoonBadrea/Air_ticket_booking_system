@@ -13,6 +13,7 @@ use App\Http\Requests\Booking\CancelBookingRequest;
 use App\Http\Requests\Booking\CreateBookingRequest;
 use App\Http\Requests\Booking\UpdateBookingRequest;
 
+
 class BookingController extends Controller
 {
     protected $bookingService;
@@ -49,6 +50,12 @@ class BookingController extends Controller
      */
     public function store(CreateBookingRequest $request)
     {
+        // dd(auth()->user()->getAllPermissions()->pluck('name'));
+        // dd(
+        //     auth()->user()->getRoleNames(),
+        //     auth()->user()->getPermissionNames(),
+        //     auth()->user()->can('create booking')
+        // );
         $this->authorize('create', Booking::class);
 
         $result = $this->bookingService->createBooking($request->validated());
@@ -76,6 +83,7 @@ class BookingController extends Controller
         $result = $this->bookingService->getBooking($booking);
         return $this->success(new BookingResource($result), 'Booking data ', 200);
     }
+
 
 
 

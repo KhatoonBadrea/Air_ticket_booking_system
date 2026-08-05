@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers\Api\Auth;
 
-use App\Services\Auth\AuthService;
-use Tymon\JWTAuth\Facades\JWTAuth;
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Http\Requests\Auth\LoginRequest;
-use Tymon\JWTAuth\Exceptions\JWTException;
 use App\Http\Requests\Auth\RegisterRequest;
+use App\Http\Resources\User\UserResource;
+use App\Services\Auth\AuthService;
+use Illuminate\Http\Request;
+use Tymon\JWTAuth\Exceptions\JWTException;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AuthController extends Controller
 {
@@ -29,7 +30,7 @@ class AuthController extends Controller
         }
 
         // dd(auth()->user('api')->getPermissionNames());
-
+        // dd($response['status']);
         return $this->success($response['data'], 'Login successful', $response['status']);
     }
 
@@ -62,7 +63,9 @@ class AuthController extends Controller
                 return $this->error(null, 'User not found', 404);
             }
 
-            return $this->success(['user' => $user], 'User retrieved successfully');
+            return $this->success([
+                'user' => new UserResource($user)
+            ], 'User retrieved successfully');
         } catch (JWTException $e) {
             return $this->error(null, 'Token is invalid', 401);
         }
