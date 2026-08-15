@@ -2,35 +2,32 @@
 
 namespace App\Exports;
 
-use App\Models\Booking;
 use App\Models\BookingActivityLog;
+use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithHeadings;
-use Maatwebsite\Excel\Concerns\FromCollection;
 
-class DailyBookingReportExport implements FromCollection, WithHeadings
+class DailyBookingReportExport implements FromQuery, WithHeadings
 {
-    public function collection()
+    public function query()
     {
-        return BookingActivityLog::whereDate('created_at', today())
-            ->get()
-            ->map(function ($log) {
-                return [
-                    'Booking ID'      => $log->booking_id,
-                    'User ID'         => $log->user_id,
-                    'Action'          => $log->action,
-                    'Changes'         => json_encode($log->changes), // حولنا JSON لسطر واحد
-                    'Created At'      => $log->created_at->format('Y-m-d H:i:s'),
-                ];
-            });
+        return BookingActivityLog::query()
+            ->whereDate('created_at', today())
+            ->select([
+                'id',
+                'booking_id',
+                'user_id',
+                'action',
+                'created_at',
+            ]);
     }
 
     public function headings(): array
     {
         return [
+            'ID',
             'Booking ID',
             'User ID',
             'Action',
-            'Changes',
             'Created At',
         ];
     }

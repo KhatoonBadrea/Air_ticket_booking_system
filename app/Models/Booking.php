@@ -16,7 +16,8 @@ class Booking extends Model
         'flight_id',
         'status',
         'payment_status',
-        'number_of_seats'
+        'number_of_seats',
+        'email_sent_at'
     ];
 
     /**
@@ -70,5 +71,4 @@ class Booking extends Model
                 $q->where('departure_time', '<=', Carbon::now()->addHours(24));
             });
     }
-
 }

@@ -16,6 +16,7 @@ class BookingObserver
             'booking_id' => $booking->id,
             'user_id' => $booking->user_id,
             'action' => 'created',
+            // 'severity' => 'low',
             'changes' => [
                 'price' => $booking->total_price,
                 'status' => $booking->status,
@@ -33,6 +34,7 @@ class BookingObserver
                 'booking_id' => $booking->id,
                 'user_id' => $booking->user_id,
                 'action' => 'updated',
+                'severity' => 'low',
                 'changes' => [
                     'old' => $booking->getOriginal(),
                     'new' => $booking->getAttributes(),
@@ -50,6 +52,7 @@ class BookingObserver
             'booking_id' => $booking->id,
             'user_id' => $booking->user_id,
             'action' => 'deleted',
+            'severity' => 'high',
         ]);
     }
 

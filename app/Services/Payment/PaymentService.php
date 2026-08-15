@@ -43,7 +43,7 @@ class PaymentService
 
             // cheack if the amount is enough
             if ($data['amount'] < $totalPrice) {
-                throw new Exception('The amount provided is insufficient for the booking.');
+                return ['status' => 'error', 'message' => 'Amount is insufficient for this booking.'];
             }
 
             $charge = Charge::create([
@@ -75,7 +75,7 @@ class PaymentService
             return [
                 'status' => 'success',
                 'message' => 'Payment processed successfully',
-                'data' => Payment::with('booking')->find($payment->id),
+                'data' => Payment::with('booking.user')->find($payment->id),
             ];
         } catch (\Exception $e) {
             DB::rollBack();

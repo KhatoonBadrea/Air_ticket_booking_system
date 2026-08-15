@@ -16,7 +16,8 @@ return new class extends Migration
             $table->foreignId('booking_id')->nullable()->constrained()->nullOnDelete();
             $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
             $table->string('action'); // created | updated | cancelled | paid
-            $table->json('changes')->nullable(); // تفاصيل التغيير
+            // $table->enum('severity', ['low', 'high'])->default('low');
+            $table->json('changes')->nullable();
             $table->timestamps();
         });
     }

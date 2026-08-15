@@ -35,7 +35,7 @@ class PaymentController extends Controller
         if ($result['status'] === 'success') {
             return $this->success(new PaymentResource($result['data']), $result['message']);
         } else {
-            return $this->error($result['message'], 400);
+            return $this->error(null, $result['message'], 400);
         }
     }
 }

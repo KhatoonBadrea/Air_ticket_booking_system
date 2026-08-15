@@ -19,7 +19,8 @@ class PaymentResource extends JsonResource
             'amount' => $this->amount,
             'transaction_id' => $this->transaction_id,
             'status' => $this->status,
-            'booking' =>  new BookingResource($this->whenLoaded(('booking'))),
+            'payer_name' => optional($this->booking?->user)->name,
+            'booking' => new BookingResource($this->whenLoaded('booking')),
         ];
     }
 }

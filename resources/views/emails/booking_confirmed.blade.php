@@ -19,8 +19,10 @@
         <li><strong>Arrival Time:</strong> {{ $booking->flight->arrival_time }}</li>
         <li><strong>Number of Seats:</strong> {{ $booking->number_of_seats }}</li>
         <li><strong>Status:</strong> {{ $booking->status }}</li>
-        <li><strong>Payment Status:</strong> {{ $booking->payment_status }} </li>
-        <li><strong>Your payment: </strong> {{$booking->payment->amount}} $</li>
+        <li><strong>Payment Status:</strong> {{ $booking->payment_status }}</li>
+        <li><strong>Your payment:</strong> {{ $booking->payment->amount }} $</li>
+        <li><strong>Payer Name:</strong> {{ $booking->user->name }}</li>
+        <li><strong>Payer Email:</strong> {{ $booking->user->email }}</li>
     </ul>
 
 

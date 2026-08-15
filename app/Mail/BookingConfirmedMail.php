@@ -42,10 +42,10 @@ class BookingConfirmedMail extends Mailable implements ShouldQueue
 
 
         return $this->subject('Booking Confirmed')
-            ->view('emails.booking_confirmed') 
+            ->view('emails.booking_confirmed')
             ->with([
                 'booking' => $this->booking,
-                'booking' => $this->user,
+                'user' => $this->user,
             ]);
     }
 }
