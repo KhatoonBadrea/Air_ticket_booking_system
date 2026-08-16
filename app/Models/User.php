@@ -25,7 +25,9 @@ class User extends Authenticatable implements JWTSubject
         'name',
         'email',
         'password',
-        'role'
+        'role',
+        'telegram_chat_id',
+        'telegram_notifications_enabled',
     ];
 
     /**
@@ -47,7 +49,13 @@ class User extends Authenticatable implements JWTSubject
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
+        'telegram_notifications_enabled' => 'boolean',
     ];
+
+    public function setEmailAttribute($value): void
+    {
+        $this->attributes['email'] = strtolower(trim((string) $value));
+    }
 
     /**
      * Get the identifier that will be stored in the subject claim of the JWT.

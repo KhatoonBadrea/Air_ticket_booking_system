@@ -121,6 +121,26 @@ class BookingTest extends TestCase
     }
 
     /** @test */
+    public function authenticated_user_can_link_their_telegram_account()
+    {
+        $user = User::factory()->create();
+
+        $response = $this->withHeaders($this->jwtHeaders($user))
+            ->postJson('/api/telegram/link', [
+                'telegram_chat_id' => 123456789,
+            ]);
+
+        $response->assertStatus(200)
+            ->assertJson(['message' => 'تم ربط حساب تليجرام بنجاح']);
+
+        $this->assertDatabaseHas('users', [
+            'id' => $user->id,
+            'telegram_chat_id' => '123456789',
+            'telegram_notifications_enabled' => true,
+        ]);
+    }
+
+    /** @test */
     public function cannot_update_other_users_booking()
     {
         $user1 = User::factory()->create();

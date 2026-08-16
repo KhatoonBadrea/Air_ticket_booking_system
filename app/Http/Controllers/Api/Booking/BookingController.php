@@ -5,11 +5,9 @@ namespace App\Http\Controllers\Api\Booking;
 use Exception;
 use App\Models\Booking;
 use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
 use App\Services\Booking\BookingService;
 use App\Http\Resources\Booking\BookingResource;
-use App\Http\Requests\Booking\CancelBookingRequest;
 use App\Http\Requests\Booking\CreateBookingRequest;
 use App\Http\Requests\Booking\UpdateBookingRequest;
 

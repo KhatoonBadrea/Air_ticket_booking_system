@@ -1,12 +1,11 @@
 <?php
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\Auth\AuthController;
-use App\Http\Controllers\Api\Flight\FlightController;
 use App\Http\Controllers\Api\Booking\BookingController;
+use App\Http\Controllers\Api\Flight\FlightController;
 use App\Http\Controllers\Api\Payment\PaymentController;
+use App\Http\Controllers\Api\Telegram\TelegramLinkController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -78,4 +77,10 @@ Route::middleware(['auth:api'])->group(function () {
     Route::post('/process-payment', [PaymentController::class, 'processPayment'])
         ->middleware('permission:create payment');
     Route::put('/payments/{payment}', [PaymentController::class, 'updatePayment']);
+});
+
+// routes/api.php
+Route::middleware(['auth:api'])->group(function () {
+    Route::post('/telegram/link', [TelegramLinkController::class, 'link']);
+    Route::post('/telegram/unlink', [TelegramLinkController::class, 'unlink']);
 });

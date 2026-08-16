@@ -2,17 +2,22 @@
 
 namespace App\Services\Booking;
 
+use App\Events\BookingCreated;
+use App\Jobs\SendBookingCancellationEmail;
+use App\Models\Booking;
+use App\Models\Flight;
+use App\Models\User;
+use App\Rules\BookingEditableRule;
+use App\Services\Payment\PaymentService;
+use App\Services\TelegramNotification\TelegramNotificationService;
 use Exception;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Stripe\Refund;
 use Stripe\Stripe;
-use App\Models\Flight;
-use App\Models\Booking;
-use App\Rules\BookingEditableRule;
-use Illuminate\Support\Facades\DB;
 use Tymon\JWTAuth\Facades\JWTAuth;
-use Illuminate\Support\Facades\Log;
-use App\Services\Payment\PaymentService;
-use App\Jobs\SendBookingCancellationEmail;
+
+use App\Listeners\Telegram\SendBookingCreatedNotification;
 
 class BookingService
 {
@@ -93,6 +98,8 @@ class BookingService
                 'status' => 'pending',
                 'payment_status' => 'pending',
             ]);
+            event(new BookingCreated($booking));
+
 
             $flight->decrement('available_seats', $data['number_of_seats']);
 
@@ -402,5 +409,20 @@ class BookingService
             Log::error('Failed to delete pending bookings: ' . $e->getMessage());
             throw new Exception('Failed to delete pending bookings.');
         }
+    }
+
+
+
+    // مثلاً بـ BookingConfirmedListener أو داخل الـ BookingService
+    public function notifyUser(User $user, string $message): void
+    {
+        if (!$user->telegram_chat_id) {
+            return; // المستخدم ما فعّل الإشعارات
+        }
+
+        app(TelegramNotificationService::class)->sendMessage(
+            $user->telegram_chat_id,
+            $message
+        );
     }
 }

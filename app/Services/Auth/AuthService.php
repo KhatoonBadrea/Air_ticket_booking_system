@@ -10,6 +10,8 @@ class AuthService
 {
     public function login($credentials)
     {
+        $credentials['email'] = strtolower(trim((string) ($credentials['email'] ?? '')));
+
         if (!$token = auth()->attempt($credentials)) {
             return [
                 'error' => true,
@@ -28,8 +30,8 @@ class AuthService
     public function register($data)
     {
         $user = User::create([
-            'name' => $data['name'],
-            'email' => $data['email'],
+            'name' => trim($data['name']),
+            'email' => strtolower(trim((string) $data['email'])),
             'password' => Hash::make($data['password']),
         ]);
         $user->assignRole('user');
